@@ -8,7 +8,7 @@ from .feeds import Feeds
 from .hub import Hub
 from .profile import Profile
 from .search import Search
-from .upload import Upload
+# from .upload import Upload
 from .api import ApiMethod
 
 # todo logging
@@ -25,7 +25,7 @@ class Instagram:
         self.hub = Hub(api=self)
         self.profile = Profile(api=self)
         self.search = Search(api=self)
-        self.upload = Upload(api=self)
+        # self.upload = Upload(api=self)
 
         self.following = Users(api=self, list_type='following')
         self.followers = Users(api=self, list_type='followers')
