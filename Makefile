@@ -51,16 +51,19 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 instatools tests
+	flake8 instatools
 
 test: ## run tests quickly with the default Python
-	py.test
+	pytest --skip-api-access
+
+test-slow: ## run all tests with the default Python
+	pytest
 
 test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source instatools -m pytest
+	coverage run --source instatools -m pytest --skip-api-access
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html

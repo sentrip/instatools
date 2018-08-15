@@ -22,11 +22,11 @@ instatools
 
 
 
-API for automating Instagram account control, maintenance and statistics
+Simple automation of Instagram account control, maintenance and statistics
 
 
 * Free software: GNU General Public License v3
-* Documentation: https://instatools.readthedocs.io.
+* Documentation: https://instatools.readthedocs.io
 
 
 Features
