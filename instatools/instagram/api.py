@@ -1,0 +1,222 @@
+"""
+Wrappers for interactions with Instagram API
+"""
+from functools import wraps
+from time import sleep, monotonic as time
+from ..models import ModelFactory
+
+# todo logging
+max_seen_items = 1000000
+sleep_between_pages = 0.5
+_feed_dict = {}
+_feed_dict.update({k: ModelFactory.comment
+                   for k in ['comments']})
+_feed_dict.update({k: ModelFactory.user
+                   for k in ['user', 'following', 'followers', 'pending']})
+_feed_dict.update({k: ModelFactory.post
+                   for k in ['tag_feed', 'location_feed', 'user_feed',
+                             'user_tags', 'timeline', 'liked', 'saved']})
+_ranked_feeds = ['tag_feed', 'user_feed', 'location_feed',
+                 'user_tags', 'popular', 'timeline']
+_user_feeds = ['following', 'followers', 'pending']
+
+
+def requires_login(func):
+    @wraps(func)
+    def wrapped(self, *args, **kwargs):
+        # assert self.logged_in, \
+        #    'Login required for this endpoint'
+        return func(self, *args, **kwargs)
+    return wrapped
+
+
+class ApiMethod:
+    def __init__(self, api):
+        self.api = api
+
+    @requires_login
+    def action(self, path, *args, max_attempts=10, return_key='', extra=None,
+               method='POST', headers=None, params=None, data=None):
+        """
+
+        :param path:
+        :param args:
+        :param max_attempts:
+        :param return_key:
+        :param extra:
+        :param method:
+        :param headers:
+        :param params:
+        :param data:
+        :return:
+        """
+        data = data or {}
+        if 'friendship' in self.api.session.paths[path] and args:
+            data['user_id'] = args[0]
+        elif 'media' in self.api.session.paths[path] and args:
+            data['media_id'] = args[0]
+
+        self.api.logger.debug('Attempting to %s %s', path, *args)
+        resp = self.api.session.request_safely(
+            method, self.api.session.url(path, *args),
+            data=data, headers=headers,
+            params=params, max_attempts=max_attempts
+        )
+
+        return self._handle_response(resp, return_key=return_key, extra=extra)
+
+    @requires_login
+    def feed(self, feed_type, *args, seen=None, raw=False):
+        """
+
+        :param feed_type:
+        :param args:
+        :param seen:
+        :param raw:
+        :return:
+        """
+        url = self.api.session.url(feed_type, *args)
+        params, item_keys, has_more_key = self._params_for_feed(feed_type)
+        pages = self._pages(url, item_keys, has_more_key, params=params)
+        if not raw:
+            pages = self._models(_feed_dict[feed_type], pages, seen=seen)
+        return pages
+
+    @requires_login
+    def form(self, path, bodies, boundary, params=None, return_key=''):
+        """
+
+        :param path:
+        :param bodies:
+        :param boundary:
+        :param params:
+        :param return_key:
+        :return:
+        """
+        body = self.api.session.build_form_body(bodies, boundary)
+        headers = self.api.session.form_headers(boundary)
+
+        resp = self.api.session.request_safely(
+            'POST', self.api.session.url(path),
+            params=params, data=body, headers=headers)
+
+        return self._handle_response(resp, return_key)
+
+    # todo add link sharing
+    # +            bodies.append({
+    # +                'type' : 'form-data',
+    # +                'name' : 'link_text',
+    # +                'data' : text or '',
+    # +            })
+    # +            bodies.append({
+    # +                'type' : 'form-data',
+    # +                'name' : 'link_urls',
+    # +                'data' : json.dumps(self.find_urls(text)),
+    # +            })
+
+    def _handle_response(self, response, return_key='', extra=None):
+
+        status = response.pop('status', 'error')
+        if status == 'ok':
+            data = response
+            model = getattr(ModelFactory, return_key.strip('s'),
+                            ModelFactory.default)
+
+            if return_key and return_key in response:
+                data = response[return_key]
+
+            # Try parse data
+            if data:
+                # Try to return instatools model(s) from data
+                try:
+                    if isinstance(data, list):
+                        return model.parse_list(self.api, data, extra=extra)
+                    else:
+                        return model.parse(self.api, data, extra=extra)
+                # Otherwise return un-parsed data
+                except TypeError:
+                    return data
+            # If no data is received, acknowledge success
+            else:
+                return True
+        else:
+            self._on_failed_request(response)
+            return False
+
+    def _on_failed_request(self, response):
+        # todo write on_failed_request
+        msg = 'aw shit %s' % str(response)[:100]
+        self.api.logger.critical(msg)
+        print(msg)
+        return False
+
+    def _models(self, model, pages, seen=None):
+        seen = seen or set()
+        # min_post_timestamp = 0
+
+        def check_seen(data):
+
+            if len(seen) > max_seen_items:
+                seen.pop()
+
+            # todo fix seen posts filtering
+            # if data['pk'] in seen:
+            #     return False
+
+            # if data.get('taken_at', None):
+            #     min_post_timestamp=max(min_post_timestamp, data['taken_at'])
+            #     if data['taken_at'] < min_post_timestamp:
+            #         return False
+
+            seen.add(data['pk'])
+            return True
+
+        for page in pages:
+            for item in page:
+                if check_seen(item):
+                    yield model.parse(self.api, item)
+
+    def _pages(self, url, item_keys, has_more_key, params=None):
+
+        last_request = time()
+        params = params or {}
+        response = {has_more_key: True, 'next_max_id': ''}
+
+        while response.get(has_more_key, False):
+
+            sleep(max(0., sleep_between_pages - (time() - last_request)))
+            last_request = time()
+
+            params = params.copy()
+            params.update(max_id=response['next_max_id'])
+            response = self.api.session.request_safely(
+                'GET', url, params=params, max_attempts=3)
+
+            if response:
+                data = []
+                for k in item_keys:
+                    data.extend(response.get(k, []))
+                yield data
+
+            else:
+                response = {has_more_key: False}
+
+    def _params_for_feed(self, feed_type):
+        params = {}
+        item_keys = ['items']
+        has_more_key = 'more_available'
+
+        if feed_type in _ranked_feeds:
+
+            params.update(rank_token=self.api.session.rank_token, ranked=True)
+            item_keys = ['items', 'ranked_items']
+
+            if feed_type == 'popular':
+                params.update(people_teaser_supported=1)
+
+        elif feed_type in _user_feeds:
+
+            item_keys = ['users']
+            has_more_key = 'big_list'
+
+        return params, item_keys, has_more_key
