@@ -101,6 +101,8 @@ class Session:
     username = None
     username_id = None
 
+    _session_class = requests.Session
+
     paths = {
         # Login endpoints
         'login_challenge': 'si/fetch_headers/',
@@ -179,7 +181,7 @@ class Session:
 
     def __init__(self, username=None, password=None, session=None):
 
-        self._session = requests.Session()
+        self._session = self._session_class()
         self._session.headers.update(HEADERS)
 
         self.setup(username, password, session)

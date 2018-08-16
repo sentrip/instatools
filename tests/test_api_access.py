@@ -1,10 +1,7 @@
 import os
 import pytest
-import requests
-import instatools.instagram.api
-from instatools import Instagram
+from instatools import Instagram, cache
 from instatools.models import ModelFactory
-from instatools.instagram.feeds import FeedReader
 
 # If you cant modify environment variables you can set
 # username and password here, but this is risky, so careful!
@@ -27,6 +24,8 @@ if not password:
             'locally to the password for INSTAGRAM_USERNAME to test api access'
         )
 
+# Only record, don't un-patch session
+cache.record('tests/data').__enter__()
 # We're only making and using one api, no fixtures
 api = Instagram(username or '_', password or '_')
 user_id = 5788087233
@@ -36,29 +35,6 @@ comment_id = None
 new_image_id = None
 new_video_id = None
 full_name = None
-
-
-# Here we patch the internal session to write response data to text files
-# so it can be used to mock responses in test_instagram and test_session
-class WriteSession(requests.Session):
-
-    def request(self, method, url, **kwargs):
-        resp = super(WriteSession, self).request(method, url, **kwargs)
-        if resp.text != '{"status": "ok"}':
-            with open('tests/data/urls.txt', 'a') as f:
-                f.write(resp.url + '\n')
-            fname = 'tests/data/%d.txt' % (len(os.listdir('tests/data')) - 1)
-            with open(fname, 'w') as f:
-                f.write(resp.text)
-
-        return resp
-
-
-headers = api.session._session.headers
-api.session._session = WriteSession()
-api.session._session.headers = headers
-FeedReader._sleep_between_reads = 0
-instatools.instagram.api.sleep_between_pages = 0
 
 
 @pytest.mark.first
