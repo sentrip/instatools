@@ -1,5 +1,5 @@
 
-from .api import ApiMethod
+from ..api import ApiMethod
 
 
 class Search:

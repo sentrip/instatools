@@ -1,5 +1,5 @@
 from cached_property import threaded_cached_property
-from .api import ApiMethod
+from ..api import ApiMethod
 
 
 class Profile:

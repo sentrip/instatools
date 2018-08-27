@@ -1,14 +1,10 @@
-from unittest.mock import MagicMock
-
-import glob
 import os
 import pytest
 import sys
-import requests
 
 sys.path.append(os.path.abspath('../instatools'))
 import instatools.cache
-import instatools.instagram.api
+import instatools.api
 from instatools.actions import Action
 from instatools.bot import Bot
 from instatools.instagram import Instagram

@@ -3,7 +3,7 @@ Wrappers for interactions with Instagram API
 """
 from functools import wraps
 from time import sleep, monotonic as time
-from ..models import ModelFactory
+from instatools.models import ModelFactory
 
 # todo logging
 max_seen_items = 1000000

@@ -2,8 +2,8 @@
 from datetime import datetime
 from time import sleep
 
+from ..api import ApiMethod
 from ..models import ModelFactory
-from .api import ApiMethod
 
 
 class Feeds:
