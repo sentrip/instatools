@@ -230,31 +230,53 @@ class Session:
 
     def login(self):
         """Login to Instagram with account credentials provided in __init__"""
+        if self.password is None:
+            self.logger.error('Password required for login')
+            return False
+
         # Get login challenge
         resp = self.request('GET', self.url('login_challenge'),
                             return_json=False,
                             params={
-                                        'challenge_type': 'signup',
-                                        'guid': generate_uuid(False)
-                                    })
+                                'challenge_type': 'signup',
+                                'guid': generate_uuid(False)
+                            })
+        if resp.status_code != 200:
+            self.logger.error('Requesting login challenge failed')
+            return False
+
         self.logger.debug('Successfully requested login challenge url')
         # Attempt to login with cookies from challenge
         resp = self.request('POST', self.url('login'),
                             return_json=False,
                             data=self.login_data(resp.cookies))
-        self.logger.debug('Successfully requested login url')
-        # Set user data to response data if successful
-        # todo fix failed login response
-        self.username_id = resp.json()["logged_in_user"]["pk"]
+
+        if resp.status_code != 200:
+            self.logger.error('Login POST failed')
+            return False
+
+        self.logger.debug('Successfully POSTED to login url')
         self._cookies = {ck.name: ck.value for ck in resp.cookies}
-        self.token = self._cookies["csrftoken"]
-        self.logger.info('Logged in')
+
+        # Set user data to response data if successful
+        data = resp.json()
+        if 'logged_in_user' in data:
+            self.username_id = data["logged_in_user"]["pk"]
+            self.token = self._cookies["csrftoken"]
+            self.logger.info('Login success')
+            return data['logged_in_user']
+        self.logger.info('Login failed')
+        return False
 
     def logout(self):
         """Logout of currently logged-in account"""
-        self.request('GET', self.url('logout'), return_json=False)
-        self.token = None
-        self.logger.info('Logged out')
+        resp = self.request('GET', self.url('logout'), return_json=False)
+        if resp.status_code == 200:
+            self.token = None
+            self.logger.info('Logged out')
+            return True
+        self.logger.error('Logout failed')
+        return False
 
     def switch_user(self, username=None, password=None, session=None):
         """Switches current account username and password - requires login"""

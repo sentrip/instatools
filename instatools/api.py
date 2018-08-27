@@ -77,9 +77,10 @@ class ApiMethod:
         """
         url = self.api.session.url(feed_type, *args)
         params, item_keys, has_more_key = self._params_for_feed(feed_type)
-        pages = self._pages(url, item_keys, has_more_key, params=params)
-        if not raw:
-            pages = self._models(_feed_dict[feed_type], pages, seen=seen)
+        pages = _Pages(self.api, url, feed_type, params, item_keys, has_more_key, raw=raw)
+        # pages = self._pages(url, item_keys, has_more_key, params=params)
+        # if not raw:
+        #     pages = self._models(_feed_dict[feed_type], pages, seen=seen)
         return pages
 
     @requires_login
@@ -150,57 +151,6 @@ class ApiMethod:
         print(msg)
         return False
 
-    def _models(self, model, pages, seen=None):
-        seen = seen or set()
-        # min_post_timestamp = 0
-
-        def check_seen(data):
-
-            if len(seen) > max_seen_items:
-                seen.pop()
-
-            # todo fix seen posts filtering
-            # if data['pk'] in seen:
-            #     return False
-
-            # if data.get('taken_at', None):
-            #     min_post_timestamp=max(min_post_timestamp, data['taken_at'])
-            #     if data['taken_at'] < min_post_timestamp:
-            #         return False
-
-            seen.add(data['pk'])
-            return True
-
-        for page in pages:
-            for item in page:
-                if check_seen(item):
-                    yield model.parse(self.api, item)
-
-    def _pages(self, url, item_keys, has_more_key, params=None):
-
-        last_request = time()
-        params = params or {}
-        response = {has_more_key: True, 'next_max_id': ''}
-
-        while response.get(has_more_key, False):
-
-            sleep(max(0., sleep_between_pages - (time() - last_request)))
-            last_request = time()
-
-            params = params.copy()
-            params.update(max_id=response['next_max_id'])
-            response = self.api.session.request_safely(
-                'GET', url, params=params, max_attempts=3)
-
-            if response:
-                data = []
-                for k in item_keys:
-                    data.extend(response.get(k, []))
-                yield data
-
-            else:
-                response = {has_more_key: False}
-
     def _params_for_feed(self, feed_type):
         params = {}
         item_keys = ['items']
@@ -220,3 +170,78 @@ class ApiMethod:
             has_more_key = 'big_list'
 
         return params, item_keys, has_more_key
+
+
+class _Pages:
+    def __init__(self, api, url, feed_type, params, item_keys, has_more_key, raw=False):
+        # todo fix seen posts filtering
+        self.api = api
+        self._items = []
+        self._item_keys = item_keys
+        self._iter = None
+        self._has_more_key = has_more_key
+        self._last_request = 0
+        self._model = _feed_dict[feed_type]
+        self._params = params or {}
+        self._raw = raw
+        self._url = url
+        self._response = {
+            has_more_key: True,
+            'next_max_id': '',
+            'prev_max_id': ''
+        }
+
+    def __iter__(self):
+        self._iter = self.iter_items()
+        return self
+
+    def __next__(self):
+        if self._iter is None:
+            self._iter = self.iter_items()
+        return next(self._iter)
+
+    @property
+    def items(self):
+        if self._raw:
+            return self._items
+        else:
+            return self._model.parse_list(self.api, self._items)
+
+    def prev(self):
+        self._items = self._get_data('prev')
+        return self
+
+    def next(self):
+        self._items = self._get_data('next')
+        return self
+
+    def iter_pages(self):
+        yield self
+        while self._response.get(self._has_more_key, False):
+            yield self.next()
+
+    def iter_items(self):
+        for item in self.items:
+            yield item
+
+        for page in self.iter_pages():
+            for item in page.items:
+                yield item
+
+    def _get_data(self, action):
+        sleep(max(0., sleep_between_pages - (time() - self._last_request)))
+        self._last_request = time()
+
+        params = self._params.copy()
+        params.update(max_id=self._response['%s_max_id' % action])
+
+        self._response = self.api.session.request_safely(
+            'GET', self._url, params=params, max_attempts=3)
+
+        data = []
+        if self._response:
+            for k in self._item_keys:
+                data.extend(self._response.get(k, []))
+        else:
+            self._response = {self._has_more_key: False}
+        return data

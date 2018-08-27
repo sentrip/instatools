@@ -3,13 +3,14 @@ Public api for Instagram
 """
 from cached_property import threaded_cached_property_ttl as cached_property
 from collections import OrderedDict
+from ..api import ApiMethod
+from ..models import ModelFactory
 from ..session import _make_logger, Session
 from .feeds import Feeds
 from .hub import Hub
 from .profile import Profile
 from .search import Search
 # from .upload import Upload
-from .api import ApiMethod
 
 # todo logging
 
@@ -62,13 +63,16 @@ class Instagram:
 
     def login(self):
         """Login to Instagram with account credentials provided in __init__"""
-        self.session.login()
-        self.logged_in = True
+        user = self.session.login()
+        if user:
+            self.logged_in = True
+            return ModelFactory.user.parse(self, user)
+        return False
 
     def logout(self):
         """Logout of currently logged-in account"""
-        self.session.logout()
-        self.logged_in = False
+        self.logged_in = not self.session.logout()
+        return not self.logged_in
 
     def switch_user(self, username=None, password=None, session=None):
         """Switches current account username and password - requires login"""
@@ -76,9 +80,11 @@ class Instagram:
         # api requests until logged into new user
         with self.session.hold_requests:
             if self.logged_in:
-                self.logout()
+                if not self.logout():
+                    return False
             self.session.switch_user(username, password, session)
-            self.login()
+            user = self.login()
+        return user
 
     # =========================================== #
     #               USER METHODS                  #

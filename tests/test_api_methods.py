@@ -15,13 +15,16 @@ COMMENT_ID = 17950495723016049
 class TestAccountActions:
 
     def test_login(self, insta_logged_out):
-        insta_logged_out.login()
+        user = insta_logged_out.login()
         assert insta_logged_out.logged_in, 'Did not login'
+        assert isinstance(user, ModelFactory.user)
+        assert user.id == insta_logged_out.username_id
 
     def test_logout(self, insta_logged_out):
         insta_logged_out.login()
-        insta_logged_out.logout()
+        result = insta_logged_out.logout()
         assert not insta_logged_out.logged_in, 'Did not logout'
+        assert result
 
 
 class TestDataActions:
