@@ -5,7 +5,7 @@ import os
 import requests
 from contextlib import contextmanager
 
-import instatools.instagram.api
+import instatools.api
 import instatools.instagram.feeds
 import instatools.session
 
@@ -57,7 +57,7 @@ def read(data_dir):
     old_request = instatools.session.Session._session_class.request
     instatools.session.Session._session_class.request = \
         _handle_request(data_dir)
-    instatools.instagram.api.sleep_between_pages = 0
+    instatools.api.sleep_between_pages = 0
     instatools.instagram.feeds.FeedReader._sleep_between_reads = 0
     yield
     instatools.session.Session._session_class.request = old_request
@@ -84,7 +84,7 @@ def record(data_dir):
         return resp
 
     instatools.session.Session._session_class.request = _request
-    instatools.instagram.api.sleep_between_pages = 0
+    instatools.api.sleep_between_pages = 0
     instatools.instagram.feeds.FeedReader._sleep_between_reads = 0
     yield
     instatools.session.Session._session_class.request = old_request
