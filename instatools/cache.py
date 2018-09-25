@@ -10,30 +10,32 @@ import instatools.instagram.feeds
 import instatools.session
 
 
-def _handle_request(data_dir):
+def _handle_request(data_dir, _req):
 
-    def _request(self, *args, **kwargs):
-        resp = requests.Response()
-        method, resp.url = args
-        try:
-            with open(os.path.join(data_dir, 'urls.txt')) as rf:
-                for i, ln in enumerate(rf):
-                    if ln.startswith(resp.url):
-                        with open(os.path.join(data_dir,
-                                               '%d.txt' % i)) as f:
-                            result = f.read()
-                        break
-                else:
-                    result = '{"status": "ok"}'
-        except Exception as e:
-            resp.status_code = 404
-            resp._content = b'{"status": "error"}'
+    def _request(self, method, url, **kwargs):
+        if 'i.instagram.com/api' in url:
+            resp = requests.Response()
+            resp.url = url
+            try:
+                with open(os.path.join(data_dir, 'urls.txt')) as rf:
+                    for i, ln in enumerate(rf):
+                        if ln.startswith(resp.url):
+                            with open(os.path.join(data_dir,
+                                                   '%d.txt' % i)) as f:
+                                result = f.read()
+                            break
+                    else:
+                        result = '{"status": "ok"}'
+            except Exception as e:
+                resp.status_code = 404
+                resp._content = b'{"status": "error"}'
+            else:
+                resp.status_code = 200
+                resp._content = result.encode('utf-8')
+            resp.cookies.update({'csrftoken': 'token'})
+            return resp
         else:
-            resp.status_code = 200
-            resp._content = result.encode('utf-8')
-        resp.cookies.update({'csrftoken': 'token'})
-        return resp
-
+            return _req(self, method, url, **kwargs)
     return _request
 
 
@@ -56,7 +58,7 @@ def read(data_dir):
 
     old_request = instatools.session.Session._session_class.request
     instatools.session.Session._session_class.request = \
-        _handle_request(data_dir)
+        _handle_request(data_dir, old_request)
     instatools.api.sleep_between_pages = 0
     instatools.instagram.feeds.FeedReader._sleep_between_reads = 0
     yield

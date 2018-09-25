@@ -77,10 +77,8 @@ class ApiMethod:
         """
         url = self.api.session.url(feed_type, *args)
         params, item_keys, has_more_key = self._params_for_feed(feed_type)
-        pages = _Pages(self.api, url, feed_type, params, item_keys, has_more_key, raw=raw)
-        # pages = self._pages(url, item_keys, has_more_key, params=params)
-        # if not raw:
-        #     pages = self._models(_feed_dict[feed_type], pages, seen=seen)
+        pages = _Pages(self.api, url, feed_type, params,
+                       item_keys, has_more_key, raw=raw)
         return pages
 
     @requires_login
@@ -173,7 +171,8 @@ class ApiMethod:
 
 
 class _Pages:
-    def __init__(self, api, url, feed_type, params, item_keys, has_more_key, raw=False):
+    def __init__(self, api, url, feed_type, params,
+                 item_keys, has_more_key, raw=False):
         # todo fix seen posts filtering
         self.api = api
         self._items = []

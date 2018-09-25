@@ -17,3 +17,8 @@ History
 ------------------
 
 * Slight tweaks to api
+
+0.1.3 (2018-09-25)
+------------------
+
+* Fixed cache interception of non-instagram requests
