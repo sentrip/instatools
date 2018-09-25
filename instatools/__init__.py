@@ -7,7 +7,7 @@ from .instagram import Instagram
 
 __author__ = """Djordje Pepic"""
 __email__ = 'djordje.m.pepic@gmail.com'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 __all__ = [
     'Action', 'Bot', 'Instagram'
