@@ -27,3 +27,8 @@ History
 ------------------
 
 * Fixed media url parsing
+
+0.1.4 (2018-09-29)
+------------------
+
+* Mistake during deployment
