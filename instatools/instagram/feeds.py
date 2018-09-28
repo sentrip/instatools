@@ -55,6 +55,9 @@ class FeedReader:
             self.feed_type, *self.args, seen=self.seen)
 
     def __iter__(self):
+        return self
+
+    def __next__(self):
         while True:
             try:
                 data = next(self.feed)
@@ -72,7 +75,7 @@ class FeedReader:
                     continue
 
                 self.has_new_items = True
-                yield data
+                return data
 
     def reset(self):
         self.feed = ApiMethod(self.api).feed(

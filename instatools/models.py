@@ -113,7 +113,15 @@ class Post(Model):
                     v.get('candidates', []),
                     key=lambda t: t['width'] * t['height']
                 ))
-
+            # GIFs
+            elif k == 'carousel_media' and len(v) > 0:
+                setattr(model, 'image_versions', sorted(
+                    v[0].get('image_versions2', {}).get('candidates', []),
+                    key=lambda t: t['width'] * t['height']
+                ))
+            elif k == 'media_type':
+                media_types = {1: 'image', 2: 'video', 8: 'gif'}
+                setattr(model, 'media_type', media_types[v])
             # Video
             elif k == 'original_width':
                 setattr(model, 'width', v)

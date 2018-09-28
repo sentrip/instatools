@@ -22,3 +22,8 @@ History
 ------------------
 
 * Fixed cache interception of non-instagram requests
+
+0.1.4 (2018-09-29)
+------------------
+
+* Fixed media url parsing

@@ -93,6 +93,7 @@ class TestFeedActions:
         count = 0
         for item in insta.feeds.tag('beach'):
             assert isinstance(item, ModelFactory.post)
+            assert item.image_versions
             if count >= 15:
                 break
             count += 1
@@ -101,6 +102,7 @@ class TestFeedActions:
         count = 0
         for item in insta.feeds.timeline:
             assert isinstance(item, ModelFactory.post)
+            assert item.image_versions
             if count >= 15:
                 break
             count += 1
