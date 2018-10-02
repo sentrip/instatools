@@ -28,7 +28,12 @@ History
 
 * Fixed media url parsing
 
-0.1.4 (2018-09-29)
+0.1.5 (2018-09-29)
 ------------------
 
 * Mistake during deployment
+
+0.1.6 (2018-10-02)
+------------------
+
+* Rewrote request caching system to use sqlite database instead of flat files

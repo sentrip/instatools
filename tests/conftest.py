@@ -52,7 +52,7 @@ def bot():
     return Bot('username', 'password')
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def insta():
     with instatools.cache.read('tests/data'):
         api = Instagram('usr', 'pwd')
@@ -64,14 +64,14 @@ def insta():
         yield api
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def insta_logged_out():
     with instatools.cache.read('tests/data'):
         api = Instagram('usr', 'pwd')
         yield api
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def session():
     with instatools.cache.read('tests/data'):
         yield
