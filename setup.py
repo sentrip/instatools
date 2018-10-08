@@ -11,9 +11,8 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['Click>=6.7', 'requests>=2.18.4',
-                'ratelimiter>=1.2.0', 'cached_property>=1.4.3',
-                'pillow>=5.1.0']
+requirements = ['requests>=2.18.4', 'ratelimiter>=1.2.0',
+                'cached_property>=1.4.3', 'pillow>=5.1.0']
 
 setup_requirements = ['pytest-runner', ]
 
@@ -30,7 +29,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    description="Simple automation of Instagram account control, maintenance and statistics",
+    description="Unofficial Instagram API for python 3.5+",
     entry_points={
         'console_scripts': [
             'instatools=instatools.cli:main',
@@ -42,7 +41,7 @@ setup(
     include_package_data=True,
     keywords='instatools',
     name='instatools',
-    packages=find_packages(include=['instatools', 'instatools.actions', 'instatools.instagram']),
+    packages=find_packages(include=['instatools', 'instatools.instagram']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,

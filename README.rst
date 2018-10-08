@@ -22,7 +22,7 @@ instatools
 
 
 
-Simple automation of Instagram account control, maintenance and statistics
+Unofficial Instagram API for python 3.5+
 
 
 * Free software: GNU General Public License v3

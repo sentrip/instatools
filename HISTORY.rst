@@ -2,6 +2,12 @@
 History
 =======
 
+0.1.8 (2018-10-09)
+------------------
+
+* Removed automation functionality and moved it to a separate package
+
+
 0.1.7 (2018-10-09)
 ------------------
 
