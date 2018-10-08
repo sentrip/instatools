@@ -225,7 +225,7 @@ class Session:
             'guid': self.uuid,
             'phone_id': generate_uuid(True),
             'login_attempt_count': '0',
-            '_csrftoken': cookies['csrftoken']
+            '_csrftoken': cookies.get('csrftoken', domain='.instagram.com')
         }
 
     def login(self):

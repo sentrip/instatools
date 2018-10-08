@@ -1,4 +1,4 @@
-
+import pytest
 from instatools.models import ModelFactory
 
 # Note: while the tests here are similar to those in test_api_access,
@@ -147,6 +147,7 @@ class TestProfileActions:
         full_name = insta.profile.full_name
         assert full_name
 
+    @pytest.mark.skip
     def test_edit(self, insta):
         # name = insta.profile.full_name
         # new_name = name[1:] + name[0]
@@ -154,9 +155,11 @@ class TestProfileActions:
         # assert success
         pass
 
+    @pytest.mark.skip
     def test_remove_profile_picture(self, insta):
         pass
 
+    @pytest.mark.skip
     def test_change_profile_picture(self, insta):
         pass
 
@@ -216,21 +219,26 @@ class TestUserActions:
 
 class TestPosting:
 
+    @pytest.mark.skip
     def test_post_album(self, insta):
         pass
 
+    @pytest.mark.skip
     def test_remove_album(self, insta):
         pass
 
+    @pytest.mark.skip
     def test_post_image(self, insta):
         pass
 
+    @pytest.mark.skip
     def test_remove_image(self, insta):
         pass
 
+    @pytest.mark.skip
     def test_post_video(self, insta):
         pass
 
+    @pytest.mark.skip
     def test_remove_video(self, insta):
         pass
-

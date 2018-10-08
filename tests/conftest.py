@@ -11,17 +11,16 @@ from instatools.instagram import Instagram
 
 
 def pytest_addoption(parser):
-    parser.addoption("--skip-api-access", action="store_true")
+    parser.addoption("--api-access", action="store_true")
 
 
 def pytest_collection_modifyitems(config, items):
-    if config.getoption("--skip-api-access"):
-        skip_slow = pytest.mark.skip(reason="remove --skip-api-access option to run")
-        for item in items:
-            if "slow" in item.keywords:
-                item.add_marker(skip_slow)
-    else:
-        instatools.cache.clear('tests/data')
+    if config.getoption("--api-access"):
+        return
+    skip_slow = pytest.mark.skip(reason="add --api-access option to run")
+    for item in items:
+        if "slow" in item.keywords:
+            item.add_marker(skip_slow)
 
 
 class DummyAction(Action):
@@ -52,7 +51,7 @@ def bot():
     return Bot('username', 'password')
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def insta():
     with instatools.cache.read('tests/data'):
         api = Instagram('usr', 'pwd')
@@ -64,14 +63,20 @@ def insta():
         yield api
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def insta_logged_out():
     with instatools.cache.read('tests/data'):
         api = Instagram('usr', 'pwd')
         yield api
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def session():
     with instatools.cache.read('tests/data'):
+        yield
+
+
+@pytest.yield_fixture(scope='module')
+def record_requests():
+    with instatools.cache.record('tests/data'):
         yield
