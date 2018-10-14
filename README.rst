@@ -7,7 +7,7 @@ instatools
         :target: https://pypi.python.org/pypi/instatools
 
 .. image:: https://img.shields.io/travis/sentrip/instatools.svg
-        :target: https://travis-ci.org/sentrip/instatools
+        :target: https://travis-ci.com/sentrip/instatools
 
 .. image:: https://readthedocs.org/projects/instatools/badge/?version=latest
         :target: https://instatools.readthedocs.io/en/latest/?badge=latest
