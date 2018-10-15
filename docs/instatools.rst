@@ -6,24 +6,23 @@ Subpackages
 
 .. toctree::
 
-    instatools.actions
     instatools.instagram
 
 Submodules
 ----------
 
-instatools.bot module
+instatools.api module
 ---------------------
 
-.. automodule:: instatools.bot
+.. automodule:: instatools.api
     :members:
     :undoc-members:
     :show-inheritance:
 
-instatools.cli module
----------------------
+instatools.cache module
+-----------------------
 
-.. automodule:: instatools.cli
+.. automodule:: instatools.cache
     :members:
     :undoc-members:
     :show-inheritance:
